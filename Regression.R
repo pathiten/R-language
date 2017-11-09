@@ -237,6 +237,12 @@ unique(flowers$Time)
 fmla <- as.formula("Flowers ~ Intensity + Time")
 mmat <- model.matrix(fmla, data = flowers) #Time column changes to boolean: TimeLate (0 or 1)
 
+#Partial F-Test on a Factor Coded as a Set of Dummies
+full <- lm(y~x+as.factor(color), data=dat)
+red <- lm(y~x, data=dat)
+anova(red,full)
+#Look at the F value & Pr(>F) this anova prints out.
+
 ########################################################################
 #Dummy Code Categorical Variables
 #https://stats.stackexchange.com/questions/115049/why-do-we-need-to-dummy-code-categorical-variables
@@ -939,7 +945,3 @@ ggplot(bikesAugust, aes(x = pred, y = cnt)) +
 
 #Sometimes it might make negative prediction. However if you look at RMSE it will be smaller than other models.
 #perhaps rounding negative predictions up to zero is a reasonable tradeoff
-
-
-
-
