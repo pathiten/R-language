@@ -962,13 +962,9 @@ lambda <- 10^seq(10, -2, length=100)
 
 #create test and training set
 library(glmnet)
-set.seed(489)
-train = sample(x = 1:nrow(x), size= nrow(x)/2)
-test = (-train)
-ytest = y[test]
 
 #OLS
-swisslm <- lm(Fertility~., data = swiss, subset = train)
+swisslm <- lm(Fertility~., data = swiss[train,])
 s.pred <- predict(swisslm, newdata = swiss[test,])
 
 #Ridge (alpha = 0)
