@@ -945,3 +945,78 @@ ggplot(bikesAugust, aes(x = pred, y = cnt)) +
 
 #Sometimes it might make negative prediction. However if you look at RMSE it will be smaller than other models.
 #perhaps rounding negative predictions up to zero is a reasonable tradeoff
+
+########################################################################
+#RIDGE AND LASSO
+########################################################################
+
+#REFERENCE: https://www.r-bloggers.com/ridge-regression-and-the-lasso/
+
+swiss <- datasets::swiss
+#remove the Fertility column and remove the intercept column
+x <- model.matrix(Fertility~., data=swiss)[,-1]
+y <- swiss$Fertility
+lambda <- 10^seq(10, -2, length=100)
+
+#When lambda = 0, we get same coefficents as OLS model
+
+#create test and training set
+library(glmnet)
+set.seed(489)
+train = sample(x = 1:nrow(x), size= nrow(x)/2)
+test = (-train)
+ytest = y[test]
+
+#OLS
+swisslm <- lm(Fertility~., data = swiss, subset = train)
+s.pred <- predict(swisslm, newdata = swiss[test,])
+
+#Ridge (alpha = 0)
+ridge.mod <- glmnet(x[train,], y[train], alpha = 0, lambda = lambda)
+cv.out <- cv.glmnet(x[train,], y[train], alpha = 0)
+bestlamRidge <- cv.out$lambda.min
+ridge.pred <- predict(ridge.mod, s = bestlamRidge, newx = x[test,])
+
+#Lasso (alpha = 1)
+lasso.mod <- glmnet(x[train,], y[train], alpha = 1, lambda = lambda)
+cv.out <- cv.glmnet(x[train,], y[train], alpha = 1)
+bestlamLasso <- cv.out$lambda.min
+lasso.pred <- predict(lasso.mod, s = bestlamLasso, newx = x[test,])
+
+#Check RMSE LINEAR
+sqrt(mean((s.pred-ytest)^2))
+#Check RMSE RIDGE
+sqrt(mean((ridge.pred - ytest)^2))
+#Check RMSE LASSO
+sqrt(mean((lasso.pred-ytest)^2))
+
+########################################################################
+#REFERENCE:https://www.youtube.com/watch?v=fAPCaue8UKQ
+########################################################################
+#Elastic net: mix of lasso and ridge regression
+
+
+#Cross-validation to find optimal lambda for lasso regression
+CV = cv.glmnet(x=trainX, y=trainY, family="binomial/gaussian", type.measure="deviance AKA mse", alpha = 1, nlambda = 100)
+
+#Following plot shows the models (with different lambda values) that glmnet has fit, along with the error type for each of the models
+plot(CV)
+
+#Fit model
+fit = glmnet(x=trainX, y=trainY, family = "binomial", alpha=1, lambda=CV$lambda.1se)
+
+#???lambda.1se vs lambda.min???
+# This is a question about parsimony. The lambda.min option refers to value of λ at the lowest CV error.
+# The error at this value of λ is the average of the errors over the k folds and hence this estimate of the error is uncertain. 
+# The lambda.1se represents the value of λ in the search that was simpler than the best model (lambda.min), but which has error 
+# within 1 standard error of the best model. In other words, using the value of lambda.1se as the selected value for λ results 
+# in a model that is slightly simpler than the best model but which cannot be distinguished from the best model in terms of error 
+# given the uncertainty in the kk-fold CV estimate of the error of the best model.
+# 
+# The choice is yours:
+#   
+# The best model that may be too complex or slightly overfitted: lambda.min
+# The simplest model that has comparable error to the best model given the uncertainty: lambda.1se
+
+#List nonzero coefficients:
+fit$beta[,1]
