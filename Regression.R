@@ -972,15 +972,15 @@ swisslm <- lm(Fertility~., data = swiss, subset = train)
 s.pred <- predict(swisslm, newdata = swiss[test,])
 
 #Ridge (alpha = 0)
-ridge.mod <- glmnet(x[train,], y[train], alpha = 0, lambda = lambda)
-cv.out <- cv.glmnet(x[train,], y[train], alpha = 0)
+cv.out <- cv.glmnet(x[train,], y[train], alpha = 0, lambda = vectorOfPossibleLambdas)
 bestlamRidge <- cv.out$lambda.min
+ridge.mod <- glmnet(x[train,], y[train], alpha = 0, lambda = bestlamRidge)
 ridge.pred <- predict(ridge.mod, s = bestlamRidge, newx = x[test,])
 
 #Lasso (alpha = 1)
-lasso.mod <- glmnet(x[train,], y[train], alpha = 1, lambda = lambda)
-cv.out <- cv.glmnet(x[train,], y[train], alpha = 1)
+cv.out <- cv.glmnet(x[train,], y[train], alpha = 1, lambda = vectorOfPossibleLambdas)
 bestlamLasso <- cv.out$lambda.min
+lasso.mod <- glmnet(x[train,], y[train], alpha = 1, lambda = bestlamLasso)
 lasso.pred <- predict(lasso.mod, s = bestlamLasso, newx = x[test,])
 
 #Check RMSE LINEAR
